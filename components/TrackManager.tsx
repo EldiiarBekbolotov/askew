@@ -40,9 +40,9 @@ const CoinVisual: React.FC<{
             {/* Main coin body - standing vertically (rotated 90 degrees on X) */}
             <mesh rotation={[Math.PI / 2, 0, 0]}>
                 <cylinderGeometry args={[0.8, 0.8, 0.12, 32]} />
-                <meshStandardMaterial 
-                    color="#ffd700" 
-                    emissive="#ffaa00" 
+                <meshStandardMaterial
+                    color="#ffd700"
+                    emissive="#ffaa00"
                     emissiveIntensity={2}
                     metalness={0.9}
                     roughness={0.1}
@@ -51,9 +51,9 @@ const CoinVisual: React.FC<{
             {/* Inner ring detail */}
             <mesh rotation={[Math.PI / 2, 0, 0]}>
                 <torusGeometry args={[0.5, 0.08, 8, 32]} />
-                <meshStandardMaterial 
-                    color="#ffcc00" 
-                    emissive="#ff8800" 
+                <meshStandardMaterial
+                    color="#ffcc00"
+                    emissive="#ff8800"
                     emissiveIntensity={1.5}
                     metalness={0.8}
                     roughness={0.2}
@@ -62,9 +62,9 @@ const CoinVisual: React.FC<{
             {/* Center dollar sign sphere */}
             <mesh>
                 <sphereGeometry args={[0.2, 16, 16]} />
-                <meshStandardMaterial 
-                    color="#ffee00" 
-                    emissive="#ffaa00" 
+                <meshStandardMaterial
+                    color="#ffee00"
+                    emissive="#ffaa00"
                     emissiveIntensity={3}
                 />
             </mesh>
@@ -97,25 +97,25 @@ const HeartVisual: React.FC<{
         <group ref={meshRef} position={[worldPos.x, worldPos.y, worldPos.z]}>
             <mesh position={[-0.25, 0.1, 0]}>
                 <sphereGeometry args={[0.35, 12, 12]} />
-                <meshStandardMaterial 
-                    color="#ff0044" 
-                    emissive="#ff0000" 
+                <meshStandardMaterial
+                    color="#ff0044"
+                    emissive="#ff0000"
                     emissiveIntensity={3}
                 />
             </mesh>
             <mesh position={[0.25, 0.1, 0]}>
                 <sphereGeometry args={[0.35, 12, 12]} />
-                <meshStandardMaterial 
-                    color="#ff0044" 
-                    emissive="#ff0000" 
+                <meshStandardMaterial
+                    color="#ff0044"
+                    emissive="#ff0000"
                     emissiveIntensity={3}
                 />
             </mesh>
             <mesh position={[0, -0.2, 0]} rotation={[0, 0, Math.PI / 4]}>
                 <boxGeometry args={[0.5, 0.5, 0.35]} />
-                <meshStandardMaterial 
-                    color="#ff0044" 
-                    emissive="#ff0000" 
+                <meshStandardMaterial
+                    color="#ff0044"
+                    emissive="#ff0000"
                     emissiveIntensity={3}
                 />
             </mesh>
@@ -162,13 +162,13 @@ const Obstacle: React.FC<{
             const speed = data.movingSpeed || 2;
             const range = data.movingRange || 3;
             const direction = data.movingDirection || [1, 0, 0];
-            
+
             const offset = Math.sin(state.clock.elapsedTime * speed) * range;
-            
+
             const newX = initialPos.current.x + direction[0] * offset;
             const newY = initialPos.current.y + direction[1] * offset;
             const newZ = initialPos.current.z + direction[2] * offset;
-            
+
             api.position.set(newX, newY, newZ);
             meshRef.current.position.set(newX, newY, newZ);
         }
@@ -183,7 +183,7 @@ const Obstacle: React.FC<{
 });
 
 // -- Segment Component --
-const Segment: React.FC<{ 
+const Segment: React.FC<{
     data: SegmentData;
     collectedCoins: Set<string>;
     collectedHearts: Set<string>;
@@ -275,7 +275,7 @@ const Segment: React.FC<{
     );
 });
 
-export const TrackManager: React.FC<{ playerZ: number }> = ({ playerZ }) => {
+export const TrackManager: React.FC = () => {
     const [segments, setSegments] = useState<SegmentData[]>([]);
     const [collectedCoins, setCollectedCoins] = useState<Set<string>>(new Set());
     const [collectedHearts, setCollectedHearts] = useState<Set<string>>(new Set());
@@ -295,7 +295,7 @@ export const TrackManager: React.FC<{ playerZ: number }> = ({ playerZ }) => {
         let yaw = 0;
 
         const rand = Math.random();
-        
+
         if (pattern === GamePattern.FLAT_WITH_OBSTACLES) {
             slope = -0.1;
             if (index > 8) {
@@ -387,15 +387,15 @@ export const TrackManager: React.FC<{ playerZ: number }> = ({ playerZ }) => {
 
         platformCounter.current = index;
 
-        return { 
-            id: `seg-${index}-${Math.random()}`, 
-            position: [center.x, center.y, center.z], 
-            length, 
-            width, 
-            slope, 
-            bank, 
-            yaw, 
-            type, 
+        return {
+            id: `seg-${index}-${Math.random()}`,
+            position: [center.x, center.y, center.z],
+            length,
+            width,
+            slope,
+            bank,
+            yaw,
+            type,
             obstacles,
             coin,
             heart,
@@ -435,7 +435,7 @@ export const TrackManager: React.FC<{ playerZ: number }> = ({ playerZ }) => {
 
     useFrame((state) => {
         if (gameState !== GameState.PLAYING || segments.length === 0) return;
-        
+
         const playerPos = state.camera.position;
         const lastSeg = segments[segments.length - 1];
         const distToEnd = lastSeg ? playerPos.distanceTo(new Vector3(...lastSeg.position)) : 0;
@@ -446,15 +446,15 @@ export const TrackManager: React.FC<{ playerZ: number }> = ({ playerZ }) => {
             setSegments(prev => [...prev, newSeg]);
         }
 
-        // Clean up old segments
-        if (segments.length > 50) {
-            setSegments(prev => prev.slice(prev.length - 50));
-        }
+        // Clean up old segments behind the player
+        const playerZ = state.camera.position.z - 13; // Player Z based on camera offset
+        const playerZThreshold = playerZ + 100; // Keep segments within 100 units behind player
+        setSegments(prev => prev.filter(seg => seg.position[2] < playerZThreshold));
 
         // Position of player in game world relative to camera
         const estimatedPlayerPos = new Vector3(
-            state.camera.position.x, 
-            state.camera.position.y - 6.5, 
+            state.camera.position.x,
+            state.camera.position.y - 6.5,
             state.camera.position.z - 13
         );
 
@@ -478,25 +478,25 @@ export const TrackManager: React.FC<{ playerZ: number }> = ({ playerZ }) => {
         // Check for coin/heart collection by proximity (increased hitbox to 3.5)
         let coinsToAdd: string[] = [];
         let heartsToAdd: string[] = [];
-        
+
         for (const seg of segments) {
             if (seg.coin && !collectedCoins.has(seg.coin.id)) {
                 const segPos = new Vector3(...seg.position);
                 const segRot = new Euler(seg.slope, seg.yaw, seg.bank);
                 const coinWorldPos = getWorldPos(new Vector3(...seg.coin.position), segPos, segRot);
-                
+
                 // Increased hitbox from 2 to 3.5
                 if (estimatedPlayerPos.distanceTo(coinWorldPos) < 3.5) {
                     coinsToAdd.push(seg.coin.id);
                     useGameStore.getState().collectCoin();
                 }
             }
-            
+
             if (seg.heart && !collectedHearts.has(seg.heart.id)) {
                 const segPos = new Vector3(...seg.position);
                 const segRot = new Euler(seg.slope, seg.yaw, seg.bank);
                 const heartWorldPos = getWorldPos(new Vector3(...seg.heart.position), segPos, segRot);
-                
+
                 // Increased hitbox from 2 to 3
                 if (estimatedPlayerPos.distanceTo(heartWorldPos) < 3) {
                     heartsToAdd.push(seg.heart.id);
@@ -504,7 +504,7 @@ export const TrackManager: React.FC<{ playerZ: number }> = ({ playerZ }) => {
                 }
             }
         }
-        
+
         // Update collected sets if we collected anything
         if (coinsToAdd.length > 0) {
             setCollectedCoins(prev => {
@@ -513,7 +513,7 @@ export const TrackManager: React.FC<{ playerZ: number }> = ({ playerZ }) => {
                 return newSet;
             });
         }
-        
+
         if (heartsToAdd.length > 0) {
             setCollectedHearts(prev => {
                 const newSet = new Set(prev);
@@ -537,8 +537,8 @@ export const TrackManager: React.FC<{ playerZ: number }> = ({ playerZ }) => {
     return (
         <group>
             {segments.map(seg => (
-                <Segment 
-                    key={seg.id} 
+                <Segment
+                    key={seg.id}
                     data={seg}
                     collectedCoins={collectedCoins}
                     collectedHearts={collectedHearts}

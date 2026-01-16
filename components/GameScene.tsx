@@ -31,17 +31,17 @@ export const GameScene: React.FC = () => {
                 defaultContactMaterial={{ friction: 0.01, restitution: 0.1 }}
             >
                 <Player />
-                <TrackManager playerZ={0} />
+                <TrackManager />
             </Physics>
 
-            <Stars 
-                radius={150} 
-                depth={50} 
-                count={7000} 
-                factor={4} 
-                saturation={0} 
-                fade 
-                speed={1.5} 
+            <Stars
+                radius={150}
+                depth={50}
+                count={7000}
+                factor={4}
+                saturation={0}
+                fade
+                speed={1.5}
             />
         </Canvas>
     );
