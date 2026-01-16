@@ -8,13 +8,14 @@ import { useGameStore } from '../store';
 import { GameState } from '../types';
 
 export const GameScene: React.FC = () => {
-    const { gameState } = useGameStore();
+    const { gameState, getCurrentBackgroundSkin } = useGameStore();
+    const backgroundSkin = getCurrentBackgroundSkin();
 
     return (
         <Canvas shadows camera={{ position: [0, 5, 10], fov: 60 }}>
-            <color attach="background" args={['#020202']} />
+            <color attach="background" args={[backgroundSkin.backgroundColor]} />
             {/* Maximum visibility: Fog starts late and ends very far away */}
-            <fog attach="fog" args={['#020202', 100, 600]} />
+            <fog attach="fog" args={[backgroundSkin.fogColor, 100, 600]} />
 
             <ambientLight intensity={0.8} />
             <pointLight position={[20, 30, 10]} intensity={1.5} />
@@ -33,7 +34,15 @@ export const GameScene: React.FC = () => {
                 <TrackManager playerZ={0} />
             </Physics>
 
-            <Stars radius={150} depth={50} count={7000} factor={4} saturation={0} fade speed={1.5} />
+            <Stars 
+                radius={150} 
+                depth={50} 
+                count={7000} 
+                factor={4} 
+                saturation={0} 
+                fade 
+                speed={1.5} 
+            />
         </Canvas>
     );
 };
