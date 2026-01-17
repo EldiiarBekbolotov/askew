@@ -13,7 +13,7 @@ export const generateGameCommentary = async (score: number, highScore: number): 
         const isNewHigh = score >= highScore && score > 0;
 
         const prompt = `
-      I just finished a round of a difficult infinite runner game called "Neon Slope".
+      I just finished a round of a difficult infinite runner game called "ASKEW".
       My score: ${score}.
       My all-time high score: ${highScore}.
       Is new high score: ${isNewHigh}.

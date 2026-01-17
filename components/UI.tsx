@@ -35,7 +35,7 @@ const MenuButton: React.FC<{
     variant?: 'primary' | 'secondary' | 'danger';
     disabled?: boolean;
 }> = ({ onClick, children, variant = 'secondary', disabled = false }) => {
-    const baseClasses = "px-8 py-3 font-bold text-lg rounded-full transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed";
+    const baseClasses = "px-8 py-3 font-bold text-lg rounded-full transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed font-jersey";
     const variantClasses = {
         primary: "bg-green-500 hover:bg-green-400 text-black hover:shadow-[0_0_20px_rgba(74,222,128,0.6)]",
         secondary: "bg-gray-700 hover:bg-gray-600 text-white border border-gray-500",
@@ -57,11 +57,117 @@ const MenuButton: React.FC<{
 const BackButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
     <button
         onClick={onClick}
-        className="absolute top-4 left-4 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-600 transition-colors"
+        className="absolute top-4 left-4 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-600 transition-colors font-jersey"
     >
         ← Back
     </button>
 );
+
+// Keybind Editor Component
+const KeybindEditor: React.FC<{
+    label: string;
+    keys: string[];
+    onKeysChange: (keys: string[]) => void;
+}> = ({ label, keys, onKeysChange }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [pendingKeys, setPendingKeys] = useState<string[]>(keys);
+
+    const formatKey = (key: string): string => {
+        const keyMap: Record<string, string> = {
+            'KeyA': 'A',
+            'KeyD': 'D',
+            'KeyW': 'W',
+            'KeyS': 'S',
+            'Space': 'Space',
+            'ArrowLeft': '←',
+            'ArrowRight': '→',
+            'ArrowUp': '↑',
+            'ArrowDown': '↓',
+        };
+        return keyMap[key] || key.replace('Key', '').replace('Arrow', '');
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const code = e.code;
+        if (!pendingKeys.includes(code)) {
+            setPendingKeys([...pendingKeys, code]);
+        }
+    };
+
+    const handleSave = () => {
+        if (pendingKeys.length > 0) {
+            onKeysChange(pendingKeys);
+        }
+        setIsEditing(false);
+    };
+
+    const handleCancel = () => {
+        setPendingKeys(keys);
+        setIsEditing(false);
+    };
+
+    const removeKey = (keyToRemove: string) => {
+        setPendingKeys(pendingKeys.filter(k => k !== keyToRemove));
+    };
+
+    return (
+        <div className="bg-gray-800 p-3 rounded-lg">
+            <div className="flex justify-between items-center">
+                <span className="text-white font-jersey">{label}</span>
+                {!isEditing ? (
+                    <div className="flex items-center gap-2">
+                        <span className="text-gray-400 text-sm font-jersey">
+                            {keys.map(formatKey).join(' / ')}
+                        </span>
+                        <button
+                            onClick={() => setIsEditing(true)}
+                            className="px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white text-xs rounded font-jersey"
+                        >
+                            Edit
+                        </button>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-2">
+                        <div
+                            className="px-3 py-1 bg-gray-700 text-white text-xs rounded min-w-[100px] text-center font-jersey"
+                            onKeyDown={handleKeyDown}
+                            tabIndex={0}
+                        >
+                            {pendingKeys.length > 0 ? pendingKeys.map(formatKey).join(' / ') : 'Press key...'}
+                        </div>
+                        <button
+                            onClick={handleSave}
+                            className="px-2 py-1 bg-green-600 hover:bg-green-500 text-white text-xs rounded font-jersey"
+                        >
+                            ✓
+                        </button>
+                        <button
+                            onClick={handleCancel}
+                            className="px-2 py-1 bg-red-600 hover:bg-red-500 text-white text-xs rounded font-jersey"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                )}
+            </div>
+            {isEditing && pendingKeys.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                    {pendingKeys.map(key => (
+                        <button
+                            key={key}
+                            onClick={() => removeKey(key)}
+                            className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded font-jersey"
+                        >
+                            {formatKey(key)} ×
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
 
 // Main Menu Screen
 const MainMenu: React.FC = () => {
@@ -90,7 +196,7 @@ const MainMenu: React.FC = () => {
 
             <div className="text-center space-y-8 p-12 border border-green-500/30 rounded-2xl bg-black/50 shadow-[0_0_50px_rgba(0,255,100,0.1)]">
                 <h1 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-600 italic tracking-tighter drop-shadow-sm">
-                    NEON SLOPE
+                    ASKEW
                 </h1>
 
                 <div className="text-gray-400">
@@ -158,6 +264,29 @@ const PlayingHUD: React.FC = () => {
                         <p className="text-xs text-gray-400">HIGH</p>
                         <p className="text-sm text-white font-bold">{highScore}</p>
                     </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Pause Screen
+const PauseScreen: React.FC = () => {
+    const { togglePause, setGameState } = useGameStore();
+
+    return (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-30 backdrop-blur-sm">
+            <div className="text-center space-y-8 p-12 border border-yellow-500/30 rounded-2xl bg-black/50 shadow-[0_0_50px_rgba(255,255,0,0.1)]">
+                <h2 className="text-6xl font-bold text-yellow-400 mb-4 font-jersey">PAUSED</h2>
+                <p className="text-gray-400 text-sm mb-6">Press P or ESCAPE to resume</p>
+                
+                <div className="flex flex-col gap-4">
+                    <MenuButton onClick={togglePause} variant="primary">
+                        RESUME
+                    </MenuButton>
+                    <MenuButton onClick={() => setGameState(GameState.MENU)}>
+                        MAIN MENU
+                    </MenuButton>
                 </div>
             </div>
         </div>
@@ -384,6 +513,7 @@ const OptionsScreen: React.FC = () => {
         setDifficulty,
         setMusicVolume,
         setSfxVolume,
+        setInputBinding,
         ballSkins,
         backgroundSkins,
         selectBallSkin,
@@ -507,18 +637,21 @@ const OptionsScreen: React.FC = () => {
                     <div>
                         <label className="text-gray-400 text-sm block mb-2">CONTROLS</label>
                         <div className="space-y-2">
-                            <div className="flex justify-between items-center bg-gray-800 p-3 rounded-lg">
-                                <span className="text-white">Move Left</span>
-                                <span className="text-gray-400 text-sm">A / ←</span>
-                            </div>
-                            <div className="flex justify-between items-center bg-gray-800 p-3 rounded-lg">
-                                <span className="text-white">Move Right</span>
-                                <span className="text-gray-400 text-sm">D / →</span>
-                            </div>
-                            <div className="flex justify-between items-center bg-gray-800 p-3 rounded-lg">
-                                <span className="text-white">Jump</span>
-                                <span className="text-gray-400 text-sm">Space / W / ↑</span>
-                            </div>
+                            <KeybindEditor
+                                label="Move Left"
+                                keys={options.inputBindings.left}
+                                onKeysChange={(keys) => setInputBinding('left', keys)}
+                            />
+                            <KeybindEditor
+                                label="Move Right"
+                                keys={options.inputBindings.right}
+                                onKeysChange={(keys) => setInputBinding('right', keys)}
+                            />
+                            <KeybindEditor
+                                label="Jump"
+                                keys={options.inputBindings.jump}
+                                onKeysChange={(keys) => setInputBinding('jump', keys)}
+                            />
                         </div>
                     </div>
                 </div>
@@ -535,7 +668,7 @@ const InfoScreen: React.FC = () => {
         <div className="absolute inset-0 flex items-center justify-center bg-black/90 z-20 backdrop-blur-sm">
             <BackButton onClick={() => setGameState(GameState.MENU)} />
 
-            <div className="text-center max-w-lg w-full p-8 border border-blue-500/30 rounded-2xl bg-black/50">
+            <div className="text-center max-w-lg w-full h-full p-8 border border-blue-500/30 rounded-2xl bg-black/50">
                 <h2 className="text-4xl font-bold text-blue-400 mb-6">HOW TO PLAY</h2>
 
                 <div className="space-y-6 text-left">
@@ -543,8 +676,8 @@ const InfoScreen: React.FC = () => {
                     <div>
                         <h3 className="text-xl font-bold text-white mb-3">CONTROLS</h3>
                         <div className="space-y-2 text-gray-300">
-                            <p><span className="text-cyan-400 font-mono">A / ←</span> - Move Left</p>
-                            <p><span className="text-cyan-400 font-mono">D / →</span> - Move Right</p>
+                            <p><span className="text-cyan-400 font-mono">A/Left Arrow</span> - Move Left</p>
+                            <p><span className="text-cyan-400 font-mono">D /Right Arrow</span> - Move Right</p>
                             <p><span className="text-cyan-400 font-mono">Space</span> - Jump</p>
                         </div>
                     </div>
@@ -594,6 +727,13 @@ export const UI: React.FC = () => {
             return <MainMenu />;
         case GameState.PLAYING:
             return <PlayingHUD />;
+        case GameState.PAUSED:
+            return (
+                <>
+                    <PlayingHUD />
+                    <PauseScreen />
+                </>
+            );
         case GameState.GAME_OVER:
             return <GameOverScreen />;
         case GameState.LEADERBOARD:

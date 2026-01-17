@@ -46,6 +46,7 @@ interface GameStore {
 
     // Actions
     setGameState: (state: GameState) => void;
+    togglePause: () => void;
     setScore: (score: number) => void;
     incrementScore: (amount: number) => void;
     incrementPlatformsCleared: () => void;
@@ -137,6 +138,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     // Actions
     setGameState: (state) => set({ gameState: state }),
+    
+    togglePause: () => set((state) => {
+        if (state.gameState === GameState.PLAYING) {
+            return { gameState: GameState.PAUSED };
+        } else if (state.gameState === GameState.PAUSED) {
+            return { gameState: GameState.PLAYING };
+        }
+        return state;
+    }),
 
     setScore: (score) => set((state) => {
         const newHighScore = Math.max(state.highScore, score);

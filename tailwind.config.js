@@ -9,6 +9,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Orbitron', 'sans-serif'],
+        jersey: ['Jersey 15', 'sans-serif'],
       },
       colors: {
         neon: {

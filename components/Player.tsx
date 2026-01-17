@@ -34,11 +34,11 @@ export const Player: React.FC = () => {
     // Physics body
     const [ref, api] = useSphere(() => ({
         mass: 1,
-        position: [0, 5, 0],
+        position: [0, 5.6, -1],
         args: [0.6],
         material: { friction: 0.1, restitution: 0.05 },
-        linearDamping: 0.1,
-        angularDamping: 0.1,
+        linearDamping: 0.15,
+        angularDamping: 0.5,
         onCollide: (e) => {
             // Enable jumping when we touch the track
             if (e.body.name !== 'player') {
@@ -49,7 +49,7 @@ export const Player: React.FC = () => {
 
     const visualRef = useRef<Group>(null);
     const ballGroupRef = useRef<Group>(null);
-    const pos = useRef(new Vector3(0, 5, 0));
+    const pos = useRef(new Vector3(0, 5.6, -1));
     const vel = useRef(new Vector3(0, 0, 0));
     const rollingRotation = useRef(new Euler(0, 0, 0));
     const { camera } = useThree();
@@ -65,7 +65,7 @@ export const Player: React.FC = () => {
 
     useEffect(() => {
         if (gameState === GameState.PLAYING) {
-            api.position.set(0, 5, 0);
+            api.position.set(0, 5.6, -1);
             api.velocity.set(0, 0, 0);
             api.angularVelocity.set(0, 0, 0);
             rollingRotation.current.set(0, 0, 0);
@@ -94,7 +94,7 @@ export const Player: React.FC = () => {
     }, []);
 
     useFrame((state, delta) => {
-        if (gameState !== GameState.PLAYING) return;
+        if (gameState !== GameState.PLAYING) return; // Pause physics when paused
 
         // Calculate speed multiplier based on difficulty and current speed
         const speedMultiplier = currentSpeed * difficultyMultiplier;
@@ -103,9 +103,13 @@ export const Player: React.FC = () => {
         // Standard downward/forward force with speed multiplier
         api.applyForce([0, -28, -forwardForce], [0, 0, 0]);
 
-        // Lateral Movement - only use A/D and Arrow keys
-        const leftPressed = keysPressed.current['KeyA'] || keysPressed.current['ArrowLeft'];
-        const rightPressed = keysPressed.current['KeyD'] || keysPressed.current['ArrowRight'];
+        // Lateral Movement - use keybinds from options
+        const leftKeys = options.inputBindings.left;
+        const rightKeys = options.inputBindings.right;
+        const jumpKeys = options.inputBindings.jump;
+        
+        const leftPressed = leftKeys.some(key => keysPressed.current[key]);
+        const rightPressed = rightKeys.some(key => keysPressed.current[key]);
         
         if (leftPressed) {
             api.applyTorque([0, 0, TURN_TORQUE]);
@@ -116,8 +120,8 @@ export const Player: React.FC = () => {
             api.applyForce([LATERAL_FORCE, 0, 0], [0, 0, 0]);
         }
 
-        // Jumping - only Space key, with key release requirement
-        const jumpPressed = keysPressed.current['Space'];
+        // Jumping - use keybinds from options, with key release requirement
+        const jumpPressed = jumpKeys.some(key => keysPressed.current[key]);
         if (jumpPressed && canJump.current && !jumpKeyWasPressed.current) {
             api.applyImpulse([0, JUMP_FORCE, 0], [0, 0, 0]);
             canJump.current = false;
@@ -154,22 +158,21 @@ export const Player: React.FC = () => {
             visualRef.current.position.copy(pos.current);
 
             const speed = vel.current.length();
-            const rollRate = speed * delta * 1.8;
+            // Reduced roll rate multiplier for slower rotation
+            const rollRate = speed * delta * 0.6;
 
             // Rolling forward (X-axis)
             rollingRotation.current.x -= rollRate;
 
-            // Tilt when turning (Z-axis)
-            const targetTilt = -vel.current.x * 0.045;
-            rollingRotation.current.z = THREE.MathUtils.lerp(rollingRotation.current.z, targetTilt, 0.15);
+            // Tilt when turning (Z-axis) - reduced for less jiggling
+            const targetTilt = -vel.current.x * 0.03;
+            rollingRotation.current.z = THREE.MathUtils.lerp(rollingRotation.current.z, targetTilt, 0.2);
 
             if (ballGroupRef.current) {
                 ballGroupRef.current.rotation.set(rollingRotation.current.x, 0, rollingRotation.current.z);
 
-                // Subtle Squash and Stretch
-                const stretch = 1 + (speed * 0.002);
-                const squash = 1 / Math.sqrt(stretch);
-                ballGroupRef.current.scale.set(squash, squash, stretch);
+                // Remove squash and stretch - keep it solid
+                ballGroupRef.current.scale.set(1, 1, 1);
             }
         }
     });
@@ -212,24 +215,35 @@ export const Player: React.FC = () => {
                             />
                         </mesh>
 
-                        {/* Glowing Grid Overlay */}
-                        <mesh>
-                            <sphereGeometry args={[0.61, 32, 32]} />
-                            <meshStandardMaterial
-                                color={ballSkin.wireframeColor}
-                                emissive={ballSkin.emissiveColor}
-                                emissiveIntensity={5}
-                                wireframe
-                                transparent
-                                opacity={0.8}
-                            />
-                        </mesh>
-
-                        {/* Inner Power Core */}
-                        <mesh>
-                            <octahedronGeometry args={[0.35, 1]} />
-                            <meshBasicMaterial color={ballSkin.coreColor} />
-                        </mesh>
+                        {/* Globe Lines - Longitude and Latitude */}
+                        <group>
+                            {/* Longitude Lines (Meridians) - 3 vertical circles going from pole to pole */}
+                            {[0, Math.PI / 3, (2 * Math.PI) / 3].map((angle, i) => (
+                                <mesh key={`long-${i}`} rotation={[Math.PI / 2, angle, 0]}>
+                                    <torusGeometry args={[0.6, 0.008, 8, 32]} />
+                                    <meshStandardMaterial
+                                        color={ballSkin.wireframeColor}
+                                        emissive={ballSkin.emissiveColor}
+                                        emissiveIntensity={5}
+                                    />
+                                </mesh>
+                            ))}
+                            
+                            {/* Latitude Lines (Parallels) - 3 horizontal circles */}
+                            {[-0.4, 0, 0.4].map((y, i) => {
+                                const radius = Math.sqrt(0.6 * 0.6 - y * y);
+                                return (
+                                    <mesh key={`lat-${i}`} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                                        <torusGeometry args={[radius, 0.008, 8, 32]} />
+                                        <meshStandardMaterial
+                                            color={ballSkin.wireframeColor}
+                                            emissive={ballSkin.emissiveColor}
+                                            emissiveIntensity={5}
+                                        />
+                                    </mesh>
+                                );
+                            })}
+                        </group>
                     </group>
                 </Trail>
 

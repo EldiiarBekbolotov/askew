@@ -240,7 +240,7 @@ const Segment: React.FC<{
                 <meshStandardMaterial color={color} roughness={0.05} metalness={0.95} />
                 <lineSegments>
                     <edgesGeometry args={[edgesGeo]} />
-                    <lineBasicMaterial color={neonColor} linewidth={4} transparent opacity={0.8} />
+                    <lineBasicMaterial color={neonColor} linewidth={4} transparent={false} opacity={1} />
                 </lineSegments>
             </mesh>
 
@@ -434,7 +434,7 @@ export const TrackManager: React.FC = () => {
     }, [gameState, initTrack]);
 
     useFrame((state) => {
-        if (gameState !== GameState.PLAYING || segments.length === 0) return;
+        if (gameState !== GameState.PLAYING || segments.length === 0) return; // Pause track updates when paused
 
         const playerPos = state.camera.position;
         const lastSeg = segments[segments.length - 1];

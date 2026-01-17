@@ -1,5 +1,5 @@
 {
-  "name": "neon-slope",
+  "name": "askew",
   "version": "1.0.0",
   "description": "A futuristic infinite runner game with AI commentary powered by Three.js and Vite",
   "type": "module",

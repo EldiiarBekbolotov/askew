@@ -1,6 +1,7 @@
 export enum GameState {
     MENU = 'MENU',
     PLAYING = 'PLAYING',
+    PAUSED = 'PAUSED',
     GAME_OVER = 'GAME_OVER',
     LEADERBOARD = 'LEADERBOARD',
     SHOP = 'SHOP',
@@ -165,8 +166,8 @@ export const DEFAULT_BALL_SKINS: BallSkin[] = [
         owned: false
     },
     {
-        id: 'rainbow',
-        name: 'Rainbow',
+        id: 'Pink',
+        name: 'Pink',
         color: '#101010',
         emissiveColor: '#ff00ff',
         wireframeColor: '#00ffff',
@@ -218,12 +219,12 @@ export const DEFAULT_BACKGROUND_SKINS: BackgroundSkin[] = [
         owned: false
     },
     {
-        id: 'void',
-        name: 'The Void',
-        backgroundColor: '#000000',
-        fogColor: '#000000',
-        starsColor: '#444444',
-        outlineColor: '#222222',
+        id: 'star',
+        name: 'Star',
+        backgroundColor: '#ffffff',
+        fogColor: '#ffffff',
+        starsColor: '#000000',
+        outlineColor: '#000000',
         price: 200,
         owned: false
     },

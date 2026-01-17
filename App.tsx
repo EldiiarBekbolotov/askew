@@ -1,8 +1,42 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { GameScene } from './components/GameScene';
 import { UI } from './components/UI';
+import { useGameStore } from './store';
+import { GameState } from './types';
 
 const App: React.FC = () => {
+    const { gameState, togglePause, setGameState } = useGameStore();
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Don't pause if we're in menu or other screens
+            if (gameState !== GameState.PLAYING && gameState !== GameState.PAUSED) {
+                return;
+            }
+
+            // Pause with P or ESCAPE
+            if (e.code === 'KeyP' || e.code === 'Escape') {
+                e.preventDefault();
+                togglePause();
+            }
+        };
+
+        const handleVisibilityChange = () => {
+            // Pause when tab loses focus
+            if (document.hidden && gameState === GameState.PLAYING) {
+                togglePause();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [gameState, togglePause]);
+
     return (
         <div className="relative w-full h-screen bg-black overflow-hidden">
             <GameScene />
