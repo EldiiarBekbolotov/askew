@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useGameStore } from '../store';
 import { GameState, Difficulty, BallSkin, BackgroundSkin } from '../types';
 
@@ -108,7 +108,7 @@ const KeybindEditor: React.FC<{
     };
 
     const removeKey = (keyToRemove: string) => {
-        setPendingKeys(pendingKeys.filter(k => k !== keyToRemove));
+        setPendingKeys(pendingKeys.filter((k: string) => k !== keyToRemove));
     };
 
     return (
@@ -153,7 +153,7 @@ const KeybindEditor: React.FC<{
             </div>
             {isEditing && pendingKeys.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
-                    {pendingKeys.map(key => (
+                    {pendingKeys.map((key: string) => (
                         <button
                             key={key}
                             onClick={() => removeKey(key)}
@@ -294,7 +294,7 @@ const PauseScreen: React.FC = () => {
 
 // Game Over Screen
 const GameOverScreen: React.FC = () => {
-    const { score, highScore, resetGame, setGameState, addToLeaderboard, totalCoinsCollected } = useGameStore();
+    const { score, resetGame, setGameState, addToLeaderboard, totalCoinsCollected } = useGameStore();
 
     React.useEffect(() => {
         addToLeaderboard(score);
