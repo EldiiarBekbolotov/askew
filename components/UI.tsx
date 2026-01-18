@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useGameStore } from '../store';
 import { GameState, Difficulty, BallSkin, BackgroundSkin } from '../types';
-import { generateGameCommentary } from '../services/geminiService';
 
 // Heart Icon Component
 const HeartIcon: React.FC<{ filled: boolean }> = ({ filled }) => (
@@ -296,16 +295,10 @@ const PauseScreen: React.FC = () => {
 // Game Over Screen
 const GameOverScreen: React.FC = () => {
     const { score, highScore, resetGame, setGameState, addToLeaderboard, totalCoinsCollected } = useGameStore();
-    const [commentary, setCommentary] = useState<string>("");
-    const [loadingCommentary, setLoadingCommentary] = useState(true);
 
-    useEffect(() => {
+    React.useEffect(() => {
         addToLeaderboard(score);
-        generateGameCommentary(score, highScore).then(text => {
-            setCommentary(text);
-            setLoadingCommentary(false);
-        });
-    }, []);
+    }, [score, addToLeaderboard]);
 
     const handleRetry = () => {
         resetGame();
@@ -319,15 +312,7 @@ const GameOverScreen: React.FC = () => {
                 <p className="text-xl text-white mb-2">SCORE: {score}</p>
                 <p className="text-sm text-yellow-400 mb-6">Coins collected: {totalCoinsCollected}</p>
 
-                <div className="mb-8 p-4 bg-gray-900 rounded-lg border border-gray-700 min-h-[80px] flex items-center justify-center">
-                    {loadingCommentary ? (
-                        <span className="animate-pulse text-gray-500">Analysing run data...</span>
-                    ) : (
-                        <p className="text-green-300 italic text-lg">"{commentary}"</p>
-                    )}
-                </div>
-
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3 mt-8">
                     <MenuButton onClick={handleRetry} variant="primary">
                         RETRY
                     </MenuButton>
